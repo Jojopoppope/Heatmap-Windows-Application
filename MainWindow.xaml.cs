@@ -30,18 +30,20 @@ namespace HeatMap_App
         public ApexMap KingsC = new ApexMap("KingsC", "Kings Canyon");
         public ApexMap WorldsE = new ApexMap("WorldE", "World's Edge");
         public ApexMap Current;
-        string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\.ApexMap\\";
+        ApexMap[] Maps = new ApexMap[2];
+        int index = 0;
 
-        PixelFormat pf = PixelFormats.Bgr32;
         static readonly int width = 800;
         static readonly int height = 800;
 
         static readonly string OutputName = "Merged";
         static readonly string outputFileName = AppDomain.CurrentDomain.BaseDirectory + "\\" + OutputName + ".bmp";
-        BitmapImage bitmapImage = new BitmapImage();
         public MainWindow()
         {
-            Current = KingsC;
+            Maps[0] = KingsC;
+            Maps[1] = WorldsE;
+
+            Current = Maps[0];
             InitializeComponent();
         }
         public void GenerateHeatMap()
@@ -51,18 +53,16 @@ namespace HeatMap_App
             string Name = "heatmap1";
             System.Drawing.Color temp;
 
-            if (Current.MapName == "Kings Canyon")
-                temp = System.Drawing.Color.Blue;
+            if (index == 0)
+                temp = System.Drawing.Color.Red;
             else
                 temp = System.Drawing.Color.Green;
 
-            for (int i = -100; i < 101; i++) // draw a square
-            {
-                for (int j = -100; j < 101; j++)
-                {
-                    bmp.SetPixel(500 + i, 500 + j, temp);
-                }
-            }
+            DrawMap.DrawSquare(bmp, temp);
+            DrawMap.SaveCoords();
+            //DrawMap.Read();
+            DrawMap.DrawCoords(bmp, DrawMap.Read(), temp);
+
 
             bmp.Save(AppDomain.CurrentDomain.BaseDirectory + "\\" + Name + ".bmp"); // save "heat"
 
@@ -76,23 +76,46 @@ namespace HeatMap_App
 
             // using streams to avoid read/write issues
             using (MemoryStream memory = new MemoryStream())
-            {                    
-                    using (FileStream fs = new FileStream(outputFileName, FileMode.Create, FileAccess.ReadWrite))
-                    {
-                        merged.Save(memory, System.Drawing.Imaging.ImageFormat.Png);
-                        byte[] bytes = memory.ToArray();
-                        fs.Write(bytes, 0, bytes.Length);
-                  
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.StreamSource = fs;
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.EndInit();
-                        ImageOverlay.Source = bitmap;
+            {
+                using (FileStream fs = new FileStream(outputFileName, FileMode.Create, FileAccess.ReadWrite))
+                {
+                    merged.Save(memory, System.Drawing.Imaging.ImageFormat.Png);
+                    byte[] bytes = memory.ToArray();
+                    fs.Write(bytes, 0, bytes.Length);
+
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = fs;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    ImageOverlay.Source = bitmap;
                 }
             }
 
             textboxett.Text = "GenerateHeatMap Done";
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                textboxett.Text = "Starting...";
+
+                Current = Maps[(index++) % 2];
+
+                GenerateHeatMap();
+
+                //ImageView.Source = Current.Source;
+                textboxett.Text = Current.MapName;
+            }
+            catch (FileNotFoundException)
+            {
+                textboxett.Text = "Exception in Button_Click";
+            }
+        }
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
         }
         public Bitmap ConvertToBitmap(string fileName)
         {
@@ -117,46 +140,5 @@ namespace HeatMap_App
             }
             return result;
         }
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                textboxett.Text = "Starting...";
-
-                switch (Current.MapDir)
-                {
-                    case "KingsC":
-                        Current = WorldsE;
-                        break;
-                    case "WorldE":
-                        Current = KingsC;
-                        break;
-                    default:
-                        break;
-
-                }
-                GenerateHeatMap();
-
-                //ImageView.Source = Current.Source;
-                textboxett.Text = Current.MapName;
-            }
-            catch (FileNotFoundException)
-            {
-                textboxett.Text = "Exception in Button_Click";
-            }
-        }
     }
 }
-//HeatMap_App.Properties.Resources.WorldE
-//image.Source = new BitmapImage(new Uri(AppDomain.CurrentDomain.BaseDirectory + "image.png", UriKind.Absolute));
-//ImageOverlay.Source = new BitmapImage(new Uri(path + "myBitmap.png"));
-//ImageOverlay.Source = new BitmapImage(new Uri("C:\\Users\\Joppm\\source\\repos\\HeatMap App\\bin\\Debug\\myBitmap.png"));
-
-//string target = "/Resources/" + Current.MapDir + ".png";
-//ImageView.Source = new BitmapImage(new Uri(target, UriKind.Relative));
-//image.Source = new BitmapImage(new Uri(AppDomain.CurrentDomain.BaseDirectory + "image.png", UriKind.Absolute));
