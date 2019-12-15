@@ -1,0 +1,19 @@
+﻿<Window x:Name="MainWindow1" x:Class="HeatMap_App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HeatMap_App"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="840" Width="825">
+    <Grid HorizontalAlignment="Left" Margin="5,5,-3,4" Width="815">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Image x:Name="ImageView" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Fill" Height="800" Width="800" Source="KingsC.png" Margin="0,0,0,0"/>
+        <Image x:Name="ImageOverlay" HorizontalAlignment="Left" Height="800" Margin="0,0,0,0" VerticalAlignment="Top" Width="800" Stretch="Fill"/>
+        <TextBox x:Name="textboxett" HorizontalAlignment="Left" Height="20" TextWrapping="Wrap" Text="Kings Canyon" VerticalAlignment="Top" Width="120" Margin="90,10,0,0" TextChanged="TextBox_TextChanged" TextAlignment="Center"/>
+        <Button x:Name="Knappen" Content="Change Map" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="Button_Click" Margin="10,10,0,0" Height="20"/>
+
+    </Grid>
+</Window>
