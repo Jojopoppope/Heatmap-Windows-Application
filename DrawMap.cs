@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -30,12 +31,38 @@ namespace HeatMap_App
         static readonly string localdir = AppDomain.CurrentDomain.BaseDirectory;
         public static void DrawCoords(Bitmap bmp, List<Coords> data, System.Drawing.Color temp)
         {
-            foreach(var points in data)
+            using (Graphics gr = Graphics.FromImage(bmp))
             {
-                bmp.SetPixel(points.X, points.Y, temp);
+                gr.InterpolationMode = InterpolationMode.High;
+                gr.SmoothingMode = SmoothingMode.HighQuality;
+                gr.CompositingQuality = CompositingQuality.HighQuality;
+
+                using (Pen thick_pen = new Pen(Color.Black, 1)) //useless as of now since it doesn't use a pen
+                {
+                    thick_pen.DashStyle = DashStyle.Solid;
+                    SolidBrush redBrush = new SolidBrush(Color.FromArgb(150, 200, 0, 50));
+                    thick_pen.Width = 1;
+                    foreach (var points in data)
+                    {
+                        //bmp.SetPixel(points.X, points.Y, Color.FromArgb(150, 200, 0, 50));
+                        gr.DrawEllipse(thick_pen, new Rectangle(points.X-5, points.Y-5, 10, 10));
+                        gr.FillEllipse(redBrush, new Rectangle(points.X-5, points.Y-5, 10, 10));
+                    }
+
+                    GraphicsPath p = new GraphicsPath();
+                    p.AddString(
+                        "Wins: " + (data.Count).ToString(), // text to draw
+                        FontFamily.GenericSansSerif,        // or any other font family
+                        (int)FontStyle.Regular,             // font style (bold, italic, etc.)
+                        gr.DpiY * 16 / 72,                  // em size
+                        new Point(650, 20),                 // location where to draw text
+                        new StringFormat());
+                    gr.DrawPath(Pens.Black, p);
+                    gr.FillPath(new SolidBrush(Color.White), p);
+                    //gr.DrawString("Wins: " + (data.Count).ToString(), new Font("Arial", 16), new SolidBrush(Color.Black), 650f,20f); //old
+                }
             }
         }
-
         /*      Functions for reading and writing to a json file        */
         public static List<Coords> Read(string currentmap)
         {
@@ -55,6 +82,11 @@ namespace HeatMap_App
             input.Add(temp);
             return input;
         }
+        public static List<Coords> UndoCoords(List<Coords> input)
+        {
+            input.RemoveAt(input.Count - 1);
+            return input;
+        }
         public static void SaveCoords(List<Coords> input, string currentmap)
         {
             string json = JsonConvert.SerializeObject(input.ToArray());
@@ -62,6 +94,7 @@ namespace HeatMap_App
         }
     }
 }
+
 //generates coords as of now
 
 /*for (int i = -100; i < 101; i+=3) // draw a square

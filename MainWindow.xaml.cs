@@ -52,6 +52,16 @@ namespace HeatMap_App
             Current = Maps[0];
             InitializeComponent();
         }
+        public void UndoWin()
+        {
+            if (File.Exists(localdir + Current.MapName + jsonloc))
+            {
+                List<Coords> points;
+                points = DrawMap.Read(Current.MapName);
+                DrawMap.SaveCoords(DrawMap.UndoCoords(points), Current.MapName);
+                GenerateHeatMap();
+            }
+        }
         public void AddWin(int x, int y)
         {
             List<Coords> points;
@@ -65,8 +75,8 @@ namespace HeatMap_App
             {
                 points = DrawMap.Read(Current.MapName);
             }
-            for (int i = 0; i < 50; i++)
-                DrawMap.AddCoords(points, i+50, i+50);
+            /*for (int i = 0; i < 50; i++)
+                DrawMap.AddCoords(points, i+50, i+50);*/
             DrawMap.SaveCoords(DrawMap.AddCoords(points, x, y), Current.MapName);
             GenerateHeatMap();
         }
@@ -98,7 +108,7 @@ namespace HeatMap_App
             Bitmap bump = ConvertToBitmap((stringUri));  // Convert loaded image
             Bitmap merged = MergedBitmaps(bmp, bump); // Merge images
 
-            Load_Image(merged, OutputName); // using streams to avoid read/write issues
+            Load_Image(merged, OutputName + Current.MapName); // using streams to avoid read/write issues
 
             //textboxett.Text = "GenerateHeatMap Done";
         }
@@ -140,6 +150,10 @@ namespace HeatMap_App
                     int y = (int)Math.Floor(Y);
 
                     AddWin(x, y);
+                }
+                if (sender == Undo_Button)
+                {
+                    UndoWin();
                 }
             }
             catch (FileNotFoundException)
