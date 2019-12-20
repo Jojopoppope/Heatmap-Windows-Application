@@ -11,9 +11,12 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Image x:Name="ImageView" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Fill" Height="800" Width="800" Source="KingsC.png" Margin="0,0,0,0"/>
-        <Image x:Name="ImageOverlay" HorizontalAlignment="Left" Height="800" Margin="0,0,0,0" VerticalAlignment="Top" Width="800" Stretch="Fill"/>
+        <Image x:Name="ImageOverlay" HorizontalAlignment="Left" Height="800" Margin="0,0,0,0" VerticalAlignment="Top" Width="800" Stretch="Fill" Visibility="Hidden"/>
         <TextBox x:Name="textboxett" HorizontalAlignment="Left" Height="20" TextWrapping="Wrap" Text="Kings Canyon" VerticalAlignment="Top" Width="120" Margin="90,10,0,0" TextChanged="TextBox_TextChanged" TextAlignment="Center"/>
-        <Button x:Name="Knappen" Content="Change Map" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="Button_Click" Margin="10,10,0,0" Height="20"/>
+        <Button x:Name="Change_Button" Content="Change Map" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="Button_Click" Margin="10,10,0,0" Height="20"/>
+        <Button x:Name="Add_Button" Content="Add Win" HorizontalAlignment="Left" VerticalAlignment="Top" Width="60" Click="Button_Click" Margin="215,10,0,0" Height="20"/>
+        <Button x:Name="Draw_Button" Content="Draw" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="Button_Click" Margin="280,10,0,0" Height="20"/>
+        <Button x:Name="Oh_NO" Content="Draw" HorizontalAlignment="Left" VerticalAlignment="Top" Width="800" Click="Button_Click" Height="800" Opacity="0.1" Visibility="Hidden"/>
 
     </Grid>
 </Window>

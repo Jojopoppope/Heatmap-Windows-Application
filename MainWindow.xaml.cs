@@ -7,6 +7,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Reflection;
+using System.Collections.Generic;
+using System.Windows.Input;
+using System.Threading;
 
 namespace HeatMap_App
 {
@@ -37,7 +40,10 @@ namespace HeatMap_App
         static readonly int height = 800;
 
         static readonly string OutputName = "Merged";
-        static readonly string outputFileName = AppDomain.CurrentDomain.BaseDirectory + "\\" + OutputName + ".bmp";
+        static readonly string localdir = AppDomain.CurrentDomain.BaseDirectory;
+        static readonly string outputFile = localdir + "\\";
+        static readonly string jsonloc = "Coordinates.json";
+        //static readonly string jsonloc = AppDomain.CurrentDomain.BaseDirectory + "Coordinates.json";
         public MainWindow()
         {
             Maps[0] = KingsC;
@@ -46,8 +52,30 @@ namespace HeatMap_App
             Current = Maps[0];
             InitializeComponent();
         }
+        public void AddWin(int x, int y)
+        {
+            List<Coords> points;
+
+            if (!File.Exists(localdir + Current.MapName + jsonloc))
+            {
+                //textboxett.Text = "Missing wins";
+                points = new List<Coords>();
+            }
+            else
+            {
+                points = DrawMap.Read(Current.MapName);
+            }
+            for (int i = 0; i < 50; i++)
+                DrawMap.AddCoords(points, i+50, i+50);
+            DrawMap.SaveCoords(DrawMap.AddCoords(points, x, y), Current.MapName);
+            GenerateHeatMap();
+        }
         public void GenerateHeatMap()
         {
+            if (!File.Exists(localdir + Current.MapName + jsonloc))
+            {
+                return;
+            }
             Bitmap bmp = new Bitmap(width, height);
 
             string Name = "heatmap1";
@@ -58,15 +86,11 @@ namespace HeatMap_App
             else
                 temp = System.Drawing.Color.Green;
 
-            DrawMap.DrawSquare(bmp, temp);
-            DrawMap.SaveCoords();
-            //DrawMap.Read();
-            DrawMap.DrawCoords(bmp, DrawMap.Read(), temp);
+            DrawMap.DrawCoords(bmp, DrawMap.Read(Current.MapName), temp);
 
+            bmp.Save(localdir + "\\" + Name + ".bmp"); // save "heat"
 
-            bmp.Save(AppDomain.CurrentDomain.BaseDirectory + "\\" + Name + ".bmp"); // save "heat"
-
-            Uri uri = new Uri(AppDomain.CurrentDomain.BaseDirectory + "/Resources/" + Current.MapDir + ".png", UriKind.Relative); // load current map
+            Uri uri = new Uri(localdir + "/Resources/" + Current.MapDir + ".png", UriKind.Relative); // load current map
 
             string stringUri;
             stringUri = uri.ToString();
@@ -74,12 +98,62 @@ namespace HeatMap_App
             Bitmap bump = ConvertToBitmap((stringUri));  // Convert loaded image
             Bitmap merged = MergedBitmaps(bmp, bump); // Merge images
 
-            // using streams to avoid read/write issues
+            Load_Image(merged, OutputName); // using streams to avoid read/write issues
+
+            //textboxett.Text = "GenerateHeatMap Done";
+        }
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+
+                if (sender == Change_Button)
+                {
+                    Current = Maps[(++index) % 2];
+                    textboxett.Text = Current.MapName;
+
+                    Uri uri = new Uri(localdir + "/Resources/" + Current.MapDir + ".png", UriKind.Relative); // load current mapstring stringUri;
+                    string stringUri;
+                    stringUri = uri.ToString();
+                    Bitmap image = ConvertToBitmap((stringUri));
+
+                    Load_Image(image, Current.MapName);
+                }
+                if (sender == Add_Button)
+                {
+                    Oh_NO.Visibility = Visibility.Visible;
+                    textboxett.Text = "Waiting for click";
+                }
+                if (sender == Draw_Button)
+                {
+                    GenerateHeatMap();
+                }
+                if(sender == Oh_NO)
+                {
+                    Oh_NO.Visibility = Visibility.Hidden;
+
+                    System.Windows.Point p = Mouse.GetPosition(ImageView);
+
+                    double X = p.X;
+                    double Y = p.Y;
+                    int x = (int)Math.Floor(X);
+                    int y = (int)Math.Floor(Y);
+
+                    AddWin(x, y);
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                textboxett.Text = "Exception in Button_Click";
+            }
+        }
+        private void Load_Image(Bitmap source, string saveloc)
+        {
             using (MemoryStream memory = new MemoryStream())
             {
-                using (FileStream fs = new FileStream(outputFileName, FileMode.Create, FileAccess.ReadWrite))
+                using (FileStream fs = new FileStream(outputFile + saveloc + ".bmp", FileMode.Create, FileAccess.ReadWrite))
                 {
-                    merged.Save(memory, System.Drawing.Imaging.ImageFormat.Png);
+                    source.Save(memory, System.Drawing.Imaging.ImageFormat.Png);
                     byte[] bytes = memory.ToArray();
                     fs.Write(bytes, 0, bytes.Length);
 
@@ -88,29 +162,8 @@ namespace HeatMap_App
                     bitmap.StreamSource = fs;
                     bitmap.CacheOption = BitmapCacheOption.OnLoad;
                     bitmap.EndInit();
-                    ImageOverlay.Source = bitmap;
+                    ImageView.Source = bitmap;
                 }
-            }
-
-            textboxett.Text = "GenerateHeatMap Done";
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                textboxett.Text = "Starting...";
-
-                Current = Maps[(index++) % 2];
-
-                GenerateHeatMap();
-
-                //ImageView.Source = Current.Source;
-                textboxett.Text = Current.MapName;
-            }
-            catch (FileNotFoundException)
-            {
-                textboxett.Text = "Exception in Button_Click";
             }
         }
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
